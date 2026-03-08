@@ -1,6 +1,26 @@
-# MeepaGateway
+<p align="center">
+    <img src="https://raw.githubusercontent.com/bogpad/meepagateway/main/icon-512.png" width="200" alt="MeepaGateway" />
+    <br><br>
+    <b>Multi-platform AI bot gateway.</b><br>
+    Connect AI agents to <a href="https://github.com/bogpad/meepachat">MeepaChat</a>, Discord, Telegram, Slack, and WhatsApp.
+    <br><br>
+    <a href="https://github.com/bogpad/meepagateway/releases"><img src="https://img.shields.io/github/v/release/bogpad/meepagateway?style=flat-square" alt="Latest Release"></a>
+    <a href="https://github.com/bogpad/meepagateway"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-blue?style=flat-square" alt="Platform"></a>
+    <br><br>
+    <img src="https://github.com/bogpad/meepagateway/blob/main/demo.gif?raw=true" width="700" alt="Demo" />
+</p>
 
-Multi-platform AI bot gateway. Connect AI agents to MeepaChat, Discord, Telegram, Slack, and WhatsApp.
+---
+
+## What is MeepaGateway?
+
+MeepaGateway is the **brain and soul of your bot**. You give it a personality, connect it to an AI model (like Claude or GPT), and it handles everything else: thinking, responding, remembering context.
+
+It's also a **bridge**. One bot can live in Discord, Slack, [MeepaChat](https://github.com/bogpad/meepachat), Telegram, and WhatsApp at the same time, from a single config file. No need to build separate integrations for each platform.
+
+**In short:** you define *who* your bot is, MeepaGateway figures out *how* to run it everywhere.
+
+---
 
 ## Install
 
@@ -22,8 +42,8 @@ meepagateway
 
 On first run, you'll choose a setup method:
 
-- **`[1]` Terminal wizard** — interactive step-by-step in your terminal
-- **`[2]` Web dashboard** — Captain Dashboard at `http://localhost:8092`
+- **`[1]` Terminal wizard**: interactive step-by-step in your terminal
+- **`[2]` Web dashboard**: Captain Dashboard at `http://localhost:8092`
 
 Both walk you through configuring your LLM provider, creating an agent, and connecting to a chat platform. To re-run later: `meepagateway setup`
 
@@ -31,7 +51,7 @@ Both walk you through configuring your LLM provider, creating an agent, and conn
 
 ### DigitalOcean (recommended)
 
-One command — auto-detects SSH keys, prints your dashboard URL and setup code when done:
+One command. Auto-detects SSH keys, prints your dashboard URL and setup code when done:
 
 ```bash
 bash <(curl -fsSL https://meepagateway.bogpad.io/deploy-do.sh)
@@ -49,26 +69,9 @@ The script automatically uses a **pre-baked snapshot** if one exists in your acc
 
 > Need doctl? `brew install doctl && doctl auth init`
 
-### Hetzner
+### Any VPS (Hetzner, Linode, Vultr, AWS, GCP, Azure, etc.)
 
-```bash
-hcloud ssh-key list
-# If empty: hcloud ssh-key create --name my-key --public-key-from-file ~/.ssh/id_ed25519.pub
-
-IP=$(hcloud server create --name meepagateway \
-  --image "$(hcloud image list -t snapshot -o columns=id,description | grep meepagateway- | sort -t- -k2 -V | tail -1 | awk '{print $1}')" \
-  --type cx23 --ssh-key my-key \
-  --user-data "$(curl -fsSL https://meepagateway.bogpad.io/cloud-init-image.sh)" \
-  -o columns=public_net --no-header | awk '{print $1}')
-
-echo "Dashboard: http://$IP:8092"
-```
-
-> Need hcloud? `brew install hcloud` or [install docs](https://github.com/hetznercloud/cli)
-
-### Any VPS (Linode, Vultr, AWS, GCP, Azure, etc.)
-
-Use cloud-init — paste as "User data" when creating a server:
+Use cloud-init. Paste as "User data" when creating a server:
 
 ```bash
 curl -sfL https://meepagateway.bogpad.io/cloud-init.sh
@@ -94,29 +97,59 @@ curl -fsSL https://meepagateway.bogpad.io/install.sh | sh
 meepagateway
 ```
 
-## Docker
-
-```bash
-docker run -d \
-  --name meepa-gateway \
-  -p 8092:8092 \
-  -v $(pwd)/meepa.toml:/app/meepa.toml:ro \
-  -e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" \
-  ghcr.io/bogpad/meepagateway:latest
-```
-
 ## Updating
 
-Built-in self-update — no need to re-download or redeploy:
+Re-run the install script:
 
 ```bash
-meepagateway update
+curl -fsSL https://meepagateway.bogpad.io/install.sh | sh
 ```
 
-Or update via the Captain Dashboard (Settings > Update).
+Or update via the Captain Dashboard (Settings > Update) | `meepagateway update` | `brew upgrade meepagateway`
 
-Other methods: `brew upgrade meepagateway` | `docker pull ghcr.io/bogpad/meepagateway:latest` | re-run the install script
+## Manage your agents
+
+MeepaGateway ships with two interfaces:
+
+**Captain Dashboard** is a web UI for managing agents, connectors, providers, credentials, skills, and cron jobs. Runs at `http://localhost:8092` by default.
+
+<p align="center">
+    <img src="https://github.com/bogpad/meepagateway/blob/main/ui-demo.gif?raw=true" width="700" alt="Captain Dashboard" />
+</p>
+
+**CLI** for everything you'd want from a terminal:
+
+```bash
+meepagateway status          # Show running agents
+meepagateway logs             # Tail agent activity
+meepagateway agent list       # List agents
+meepagateway agent soul edit  # Edit an agent's personality
+meepagateway update           # Self-update
+```
+
+## Sandbox mode
+
+Sandbox mode runs each agent inside a Docker container, isolating the entire agent loop (LLM calls, tool execution, shell commands) from the host. A fresh container is spawned per message and destroyed after the response is sent.
+
+It's **off by default**. You only need it if your agents run untrusted code, execute shell commands, or need a controlled environment with specific packages. Most users don't need to turn it on.
+
+When enabled, containers run with a read-only rootfs, all capabilities dropped, no privilege escalation, and a memory cap. The only writable paths are the agent workspace and `/tmp`. API keys are passed via stdin and never written to disk.
+
+You can configure which packages are available inside the container (python3, nodejs, git, etc.) through the Captain Dashboard or `config.yaml`. See the [full sandbox docs](https://meepa.mintlify.app/gateway/sandbox) for setup details.
+
+## Why MeepaGateway?
+
+Most bot frameworks give you a basic request-response loop. I wanted something that could fully leverage what [MeepaChat](https://github.com/bogpad/meepachat) exposes: rich markdown responses, group chats where multiple agents can collaborate, persistent memory, and dynamic skills. And I wanted the same agents to work across Discord, Slack, Telegram, and WhatsApp without rewriting anything.
+
+I also personally like having a CLI and dashboard for managing my bots. `meepagateway logs` to tail agent activity, a built-in credential store so API keys aren't scattered in env vars, and a web UI to configure everything visually. I wanted something that feels like a tool, not just a library.
+
+MeepaGateway is completely independent of MeepaChat. You don't need one to use the other. There are plenty of great bot frameworks out there, and MeepaChat works with any of them. MeepaGateway is just the one I built because I wanted something that fit the way I think about agents.
+
+Define your agents once (their personality, memory, skills, and MCP tools) and run them everywhere from a single process.
+
+I'm building this solo, so if you run into bugs or have ideas, [open an issue](https://github.com/bogpad/meepagateway/issues). I'd love to hear how you're using it.
 
 ## Documentation
 
-Full docs: [meepagateway/docs](https://github.com/bogpad/meepa/tree/main/meepagateway/docs)
+- [Full docs](https://meepa.mintlify.app/gateway/introduction)
+- [MeepaChat](https://github.com/bogpad/meepachat): the team chat app that MeepaGateway connects to
