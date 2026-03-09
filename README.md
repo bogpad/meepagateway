@@ -25,7 +25,7 @@ It's also a **bridge**. One bot can live in Discord, Slack, [MeepaChat](https://
 ## Install
 
 ```bash
-curl -fsSL https://meepagateway.bogpad.io/install.sh | sh
+curl -fsSL https://meepa.ai/install-meepagateway.sh | sh
 ```
 
 Or via Homebrew:
@@ -54,13 +54,13 @@ Both walk you through configuring your LLM provider, creating an agent, and conn
 One command. Auto-detects SSH keys, prints your dashboard URL and setup code when done:
 
 ```bash
-bash <(curl -fsSL https://meepagateway.bogpad.io/deploy-do.sh)
+bash <(curl -fsSL https://meepa.ai/deploy-do-meepagateway.sh)
 ```
 
 Skip the setup wizard entirely by passing your API key and password:
 
 ```bash
-bash <(curl -fsSL https://meepagateway.bogpad.io/deploy-do.sh) \
+bash <(curl -fsSL https://meepa.ai/deploy-do-meepagateway.sh) \
   --anthropic-key "sk-ant-..." \
   --password "your-password"
 ```
@@ -74,7 +74,7 @@ The script automatically uses a **pre-baked snapshot** if one exists in your acc
 Use cloud-init. Paste as "User data" when creating a server:
 
 ```bash
-curl -sfL https://meepagateway.bogpad.io/cloud-init.sh
+curl -sfL https://meepa.ai/cloud-init-meepagateway.sh
 ```
 
 After boot (~3 minutes), open `http://<server-ip>:8092`.
@@ -93,7 +93,7 @@ Environment variables you can set before running cloud-init:
 On any Ubuntu server:
 
 ```bash
-curl -fsSL https://meepagateway.bogpad.io/install.sh | sh
+curl -fsSL https://meepa.ai/install-meepagateway.sh | sh
 meepagateway
 ```
 
@@ -102,7 +102,7 @@ meepagateway
 Re-run the install script:
 
 ```bash
-curl -fsSL https://meepagateway.bogpad.io/install.sh | sh
+curl -fsSL https://meepa.ai/install-meepagateway.sh | sh
 ```
 
 Or update via the Captain Dashboard (Settings > Update) | `meepagateway update` | `brew upgrade meepagateway`
