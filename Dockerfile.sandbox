@@ -10,6 +10,13 @@ LABEL org.opencontainers.image.source="https://github.com/bogpad/meepagateway"
 LABEL org.opencontainers.image.description="Pre-built sandbox image for MeepaGateway agents"
 
 ENV DEBIAN_FRONTEND=noninteractive
+# Disable Chrome's internal sandbox — unnecessary inside a container (already isolated)
+# and Chrome refuses to start as root without this.
+ENV CHROMIUM_FLAGS="--no-sandbox"
+ENV PLAYWRIGHT_CHROMIUM_SANDBOX=0
+# Store Playwright browsers in a shared location accessible by any UID
+# (container may run as non-root via --user)
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
 
 # System packages
 # Skip chromium-browser — it's a transitional snap package that pulls in snapd
@@ -40,8 +47,9 @@ RUN pip3 install --no-cache-dir --break-system-packages --ignore-installed \
 # Global npm packages
 RUN npm install -g typescript agent-browser@latest
 
-# Install Playwright Chromium + all system deps
-RUN npx playwright install --with-deps chromium
+# Install Playwright Chromium + all system deps into shared location
+RUN npx playwright install --with-deps chromium \
+    && chmod -R o+rX /opt/playwright
 
 RUN mkdir -p /agent/workspace && chmod 777 /agent /agent/workspace
 WORKDIR /agent
