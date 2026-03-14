@@ -127,15 +127,38 @@ meepagateway agent soul edit  # Edit an agent's personality
 meepagateway update           # Self-update
 ```
 
-## Sandbox mode
+## Sandboxing strategies
 
-Sandbox mode runs each agent inside a Docker container, isolating the entire agent loop (LLM calls, tool execution, shell commands) from the host. A fresh container is spawned per message and destroyed after the response is sent.
+MeepaGateway has three layers of isolation for agent shell commands, from strongest to lightest:
 
-It's **off by default**. You only need it if your agents run untrusted code, execute shell commands, or need a controlled environment with specific packages. Most users don't need to turn it on.
+### Container mode
 
-When enabled, containers run with a read-only rootfs, all capabilities dropped, no privilege escalation, and a memory cap. The only writable paths are the agent workspace and `/tmp`. API keys are passed via stdin and never written to disk.
+Runs each agent inside a Docker container, isolating the entire agent loop (LLM calls, tool execution, shell commands) from the host. A fresh container is spawned per message and destroyed after the response is sent.
+
+Containers run with a read-only rootfs, all capabilities dropped, no privilege escalation, and a memory cap. The only writable paths are the agent workspace and `/tmp`. API keys are passed via stdin and never written to disk.
 
 You can configure which packages are available inside the container (python3, nodejs, git, etc.) through the Captain Dashboard or `config.yaml`. See the [full sandbox docs](https://meepa.mintlify.app/gateway/sandbox) for setup details.
+
+### Kernel isolation (default)
+
+When container mode is off, shell commands are automatically sandboxed using OS-level kernel isolation:
+
+- **macOS**: [Seatbelt](https://reverse.put.as/wp-content/uploads/2011/09/Apple-Sandbox-Guide-v1.0.pdf) (`sandbox-exec`) — profile-based sandbox that restricts file access, network, and process operations
+- **Linux**: [Landlock](https://landlock.io/) LSM (kernel 5.13+) — directory-level read/write allowlisting
+
+### Unrestricted mode
+
+Set `file_access.unrestricted: true` in an agent's config (or toggle "Unrestricted File Access" in the Captain Dashboard) to skip kernel isolation entirely. Shell commands run without any sandbox.
+
+Use this only for trusted agents that need full system access (e.g., a dev-ops agent managing your server). Most agents should use the default kernel isolation.
+
+### Choosing a strategy
+
+| Strategy | Isolation | Performance | Use case |
+|-|-|-|-|
+| Container mode | Full OS-level (Docker) | Slower (container spin-up per message) | Untrusted code, public-facing agents |
+| Kernel isolation | File/network restrictions | Native speed | Default for all agents |
+| Unrestricted | None | Native speed | Trusted agents needing full access |
 
 ## Why MeepaGateway?
 
