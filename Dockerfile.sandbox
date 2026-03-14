@@ -12,7 +12,10 @@ LABEL org.opencontainers.image.description="Pre-built sandbox image for MeepaGat
 ENV DEBIAN_FRONTEND=noninteractive
 
 # System packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Skip chromium-browser — it's a transitional snap package that pulls in snapd
+# (compiled with old Go stdlib, triggers 35+ CVEs). Playwright installs its own Chromium below.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     git \
@@ -26,15 +29,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     nodejs \
     npm \
-    chromium-browser \
     fonts-liberation \
+    && apt-get purge -y --auto-remove snapd && rm -rf /var/lib/snapd \
     && rm -rf /var/lib/apt/lists/*
 
-# Python packages
-RUN pip3 install --no-cache-dir --break-system-packages Pillow
+# Python packages — use --ignore-installed to shadow debian-packaged versions (pip can't uninstall them)
+RUN pip3 install --no-cache-dir --break-system-packages --ignore-installed \
+    Pillow setuptools wheel
 
 # Global npm packages
-RUN npm install -g typescript agent-browser
+RUN npm install -g typescript agent-browser@latest
 
 # Install Playwright Chromium + all system deps
 RUN npx playwright install --with-deps chromium
