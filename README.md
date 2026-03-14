@@ -148,7 +148,11 @@ When container mode is off, shell commands are automatically sandboxed using OS-
 
 ### Unrestricted mode
 
-Set `file_access.unrestricted: true` in an agent's config (or toggle "Unrestricted File Access" in the Captain Dashboard) to skip kernel isolation entirely. Shell commands run without any sandbox.
+Skip kernel isolation entirely. Shell commands run without any sandbox. Three ways to enable it:
+
+- **CLI flag**: `meepagateway start --unrestricted` — applies to all agents for that session (not persisted)
+- **Per-agent config**: set `file_access.unrestricted: true` in `config.yaml`
+- **Dashboard**: toggle "Unrestricted File Access" in the agent settings
 
 Use this only for trusted agents that need full system access (e.g., a dev-ops agent managing your server). Most agents should use the default kernel isolation.
 
