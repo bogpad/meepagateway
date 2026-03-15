@@ -47,6 +47,16 @@ On first run, you'll choose a setup method:
 
 Both walk you through configuring your LLM provider, creating an agent, and connecting to a chat platform. To re-run later: `meepagateway setup`
 
+## Showcase
+
+### Agent generating wedding floral simulations (with image generation)
+
+<img src="screenshots/wedding-floral.png" width="600" alt="Agent generating wedding floral arrangements" />
+
+### Installing a skill from the catalogue via chat
+
+<img src="screenshots/skill-install-from-catalogue.png" width="600" alt="Installing the agent-browser skill from the catalogue and taking a screenshot of Hacker News" />
+
 ## Deploy to a server
 
 ### DigitalOcean (recommended)
