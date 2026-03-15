@@ -40,3 +40,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/bogpad/meepagateway-sandbox:latest
+            ghcr.io/bogpad/meepagateway-sandbox:0.0.1
